@@ -31,7 +31,7 @@ export function Sidebar() {
             <Activity className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-semibold text-foreground">MedMonitor</h1>
+            <h1 className="font-semibold text-foreground">Care</h1>
             <p className="text-xs text-muted-foreground">AI Health Platform</p>
           </div>
         </Link>
