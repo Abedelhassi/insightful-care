@@ -18,15 +18,6 @@ export default function PatientAnalysis() {
   const [isReportDragging, setIsReportDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AnalysisData | null>(null);
-  const [behaviorLogs, setBehaviorLogs] = useState<BehaviorLogEntry[]>([
-    { timeRange: "08:00 - 09:30", behavior: "" },
-    { timeRange: "09:30 - 11:00", behavior: "" },
-    { timeRange: "11:00 - 12:30", behavior: "" },
-    { timeRange: "12:30 - 14:00", behavior: "" },
-    { timeRange: "14:00 - 15:30", behavior: "" },
-    { timeRange: "15:30 - 17:00", behavior: "" },
-    { timeRange: "17:00 - 18:30", behavior: "" },
-  ]);
 
   useEffect(() => {
     const savedPatient = localStorage.getItem('newPatient');
@@ -41,12 +32,6 @@ export default function PatientAnalysis() {
       navigate("/patients/new");
     }
   }, [navigate]);
-
-  const updateBehavior = (index: number, value: string) => {
-    const newLogs = [...behaviorLogs];
-    newLogs[index].behavior = value;
-    setBehaviorLogs(newLogs);
-  };
 
   const handleVideoDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -105,16 +90,6 @@ export default function PatientAnalysis() {
   };
 
   const handleAnalyzeWithAI = () => {
-    const filledBehaviors = behaviorLogs.filter(log => log.behavior.trim() !== "");
-    if (filledBehaviors.length < 7) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in at least 7 behavioral observations.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (!videoFile && !reportFile) {
       toast({
         title: "Missing files",
@@ -133,7 +108,7 @@ export default function PatientAnalysis() {
 
       toast({
         title: "Analysis Complete",
-        description: "AI has successfully analyzed the uploaded files, patient behavior, and medical reports."
+        description: "AI has successfully analyzed the uploaded files and generated a comprehensive behavioral report."
       });
     }, 3000);
   };
@@ -192,37 +167,6 @@ export default function PatientAnalysis() {
         </div>
 
         <div className="space-y-6">
-          {/* Step 3: Behavior Logging */}
-          <div className="medical-card">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-medical-blue-light flex items-center justify-center">
-                <ClipboardList className="w-5 h-5 text-medical-blue" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Patient Behavior Log</h3>
-                <p className="text-sm text-muted-foreground">Record behavior observed during different time slots (At least 7 required)</p>
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              {behaviorLogs.map((log, index) => (
-                <div key={index} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-2 min-w-[140px] text-sm font-medium text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    {log.timeRange}
-                  </div>
-                  <input
-                    type="text"
-                    value={log.behavior}
-                    onChange={(e) => updateBehavior(index, e.target.value)}
-                    placeholder="Enter patient behavior (e.g. sad, angry, anxious...)"
-                    className="flex-1 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
@@ -379,6 +323,21 @@ export default function PatientAnalysis() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Behavioral Observations</h4>
+                    <div className="grid gap-2">
+                      {aiAnalysis.behaviorLog.map((log, i) => (
+                        <div key={i} className="flex items-center gap-3 p-2 bg-background/50 rounded-lg border border-border">
+                          <Clock className="w-3 h-3 text-medical-blue" />
+                          <div className="flex-1">
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{log.timeRange}</p>
+                            <p className="text-xs font-medium text-foreground">{log.behavior}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
                     <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Lab Parameters</h4>
                     <div className="space-y-2">
                       {aiAnalysis.medicalResults.map((result, i) => (
@@ -399,7 +358,9 @@ export default function PatientAnalysis() {
                       ))}
                     </div>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-4">
                     <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Addiction Risk Assessment</h4>
                     <div className="p-6 bg-background/50 rounded-lg border border-border text-center">
@@ -410,22 +371,22 @@ export default function PatientAnalysis() {
                       <div className="mt-4 flex items-start gap-2 text-left p-3 bg-risk-high-bg rounded-lg">
                         <Activity className="w-4 h-4 text-risk-high mt-0.5" />
                         <p className="text-xs text-risk-high">
-                          The behavior logs show 3 peak agitation periods correlate with low serotonin markers.
+                          Behavioral peaks correlate with biochemical markers indicating elevated relapse potential.
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Treatment Advices</h4>
-                  <div className="grid gap-2">
-                    {aiAnalysis.treatmentAdvices.map((advice, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 bg-medical-green-light/30 rounded-lg border border-medical-green/10">
-                        <CheckCircle2 className="w-4 h-4 text-medical-green mt-0.5" />
-                        <p className="text-sm text-foreground">{advice}</p>
-                      </div>
-                    ))}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Treatment Advices</h4>
+                    <div className="grid gap-2">
+                      {aiAnalysis.treatmentAdvices.map((advice, i) => (
+                        <div key={i} className="flex items-start gap-3 p-3 bg-medical-green-light/30 rounded-lg border border-medical-green/10">
+                          <CheckCircle2 className="w-4 h-4 text-medical-green mt-0.5" />
+                          <p className="text-sm text-foreground">{advice}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
