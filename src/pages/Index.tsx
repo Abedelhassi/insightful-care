@@ -11,7 +11,7 @@ export default function Index() {
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
               <Activity className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-lg text-foreground">MedMonitor</span>
+            <span className="font-semibold text-lg text-foreground">Care</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link 
@@ -174,7 +174,7 @@ export default function Index() {
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
                 <Activity className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-medium text-foreground">MedMonitor</span>
+              <span className="font-medium text-foreground">Care</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Privacy Notice</a>

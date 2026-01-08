@@ -31,7 +31,7 @@ export default function Signup() {
           <div className="w-20 h-20 rounded-2xl bg-primary-foreground/10 backdrop-blur flex items-center justify-center mx-auto mb-6">
             <Activity className="w-10 h-10" />
           </div>
-          <h2 className="text-3xl font-bold mb-4">Join MedMonitor</h2>
+          <h2 className="text-3xl font-bold mb-4">Join Care</h2>
           <p className="text-primary-foreground/80 text-lg">
             Create your account to start monitoring patients with AI-powered behavioral analysis and real-time alerts.
           </p>
@@ -76,7 +76,7 @@ export default function Signup() {
               <Activity className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">MedMonitor</h1>
+              <h1 className="text-xl font-semibold text-foreground">Care</h1>
               <p className="text-sm text-muted-foreground">AI Health Platform</p>
             </div>
           </div>
