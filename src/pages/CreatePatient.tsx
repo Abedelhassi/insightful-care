@@ -1,12 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { User, Lock, Calendar, FileText, Pill, Save, Video, Upload, Sparkles, X, Loader2 } from "lucide-react";
+import { User, Lock, Calendar, FileText, Pill, ArrowRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function CreatePatient() {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -21,77 +20,51 @@ export default function CreatePatient() {
     frequency: "",
     treatmentNotes: "",
   });
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("video/")) {
-      setVideoFile(file);
-    } else {
-      toast({ title: "Invalid file", description: "Please upload a video file.", variant: "destructive" });
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setVideoFile(file);
-    }
-  };
-
-  const handleAnalyzeWithAI = () => {
-    if (!videoFile && !formData.drugName) {
-      toast({ title: "Missing data", description: "Please upload a video or enter medication details.", variant: "destructive" });
-      return;
-    }
-    
-    setIsAnalyzing(true);
-    // Simulate AI analysis
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setAiAnalysis(`AI Analysis Complete:
-      
-• Video Analysis: Patient shows stable behavioral patterns with no signs of acute distress.
-• Medication Review: ${formData.drugName || "No medication specified"} at ${formData.dosage || "unspecified dosage"} - Compatible with patient profile.
-• Risk Assessment: Low to moderate risk level based on provided data.
-• Recommendations: Continue current treatment plan with regular monitoring.`);
-      toast({ title: "Analysis Complete", description: "AI has analyzed the patient data." });
-    }, 2000);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const patientId = `P${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+
+    localStorage.setItem('newPatient', JSON.stringify({
+      ...formData,
+      id: patientId,
+    }));
+
     toast({
-      title: "Patient Created",
-      description: `${formData.fullName} has been added to the system.`,
+      title: "Patient Information Saved",
+      description: `${formData.fullName}'s information has been saved. Proceeding to analysis...`,
     });
-    navigate("/dashboard");
+
+    navigate(`/patients/${patientId}/analysis`);
   };
 
   return (
-    <DashboardLayout title="Create Patient" subtitle="Add a new patient to the monitoring system">
+    <DashboardLayout title="Create Patient - Step 1" subtitle="Enter patient basic information">
       <div className="max-w-3xl">
+        <div className="mb-6 p-4 bg-medical-blue-light rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-medical-blue text-white flex items-center justify-center text-sm font-semibold">
+                1
+              </div>
+              <span className="text-sm font-medium text-medical-blue">Patient Information</span>
+            </div>
+            <div className="flex-1 h-0.5 bg-border mx-2"></div>
+            <div className="flex items-center gap-2 opacity-50">
+              <div className="w-8 h-8 rounded-full bg-border text-muted-foreground flex items-center justify-center text-sm font-semibold">
+                2
+              </div>
+              <span className="text-sm text-muted-foreground">Video & Analysis</span>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Login Credentials Section */}
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-medical-blue-light flex items-center justify-center">
@@ -135,7 +108,6 @@ export default function CreatePatient() {
             </div>
           </div>
 
-          {/* Personal Information Section */}
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-medical-green-light flex items-center justify-center">
@@ -162,7 +134,7 @@ export default function CreatePatient() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Age
@@ -229,67 +201,6 @@ export default function CreatePatient() {
             </div>
           </div>
 
-          {/* Video Upload Section */}
-          <div className="medical-card">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                <Video className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Video Upload</h3>
-                <p className="text-sm text-muted-foreground">Upload patient monitoring video for AI analysis</p>
-              </div>
-            </div>
-
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                isDragging
-                  ? "border-medical-blue bg-medical-blue/5"
-                  : "border-border hover:border-medical-blue/50 hover:bg-muted/50"
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="video/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              {videoFile ? (
-                <div className="flex items-center justify-center gap-3">
-                  <Video className="w-8 h-8 text-medical-green" />
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">{videoFile.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setVideoFile(null);
-                    }}
-                    className="p-1 hover:bg-destructive/10 rounded-full transition-colors"
-                  >
-                    <X className="w-5 h-5 text-destructive" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Upload className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-foreground font-medium">Drop video here or click to upload</p>
-                  <p className="text-sm text-muted-foreground mt-1">MP4, WebM, MOV up to 100MB</p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Medication / Treatment Section */}
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-medical-green-light flex items-center justify-center">
@@ -362,11 +273,10 @@ export default function CreatePatient() {
             </div>
 
             <p className="text-xs text-muted-foreground mt-4 flex items-center gap-1">
-              ⚠️ Treatment information is provided by the doctor. AI does not prescribe medication.
+              Treatment information is provided by the doctor. AI does not prescribe medication.
             </p>
           </div>
 
-          {/* Medical History Section */}
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-medical-purple-light flex items-center justify-center">
@@ -409,28 +319,6 @@ export default function CreatePatient() {
             </div>
           </div>
 
-          {/* AI Analysis Section */}
-          {aiAnalysis && (
-            <div className="medical-card border-medical-purple/30 bg-medical-purple/5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-medical-purple-light flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-medical-purple" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">AI Analysis Results</h3>
-                  <p className="text-sm text-muted-foreground">AI-generated insights</p>
-                </div>
-              </div>
-              <pre className="whitespace-pre-wrap text-sm text-foreground bg-background/50 p-4 rounded-lg">
-                {aiAnalysis}
-              </pre>
-              <p className="text-xs text-muted-foreground mt-3">
-                ⚠️ AI-assisted analysis. Final medical decisions remain the responsibility of the physician.
-              </p>
-            </div>
-          )}
-
-          {/* Submit Buttons */}
           <div className="flex flex-wrap justify-end gap-4">
             <button
               type="button"
@@ -439,22 +327,9 @@ export default function CreatePatient() {
             >
               Cancel
             </button>
-            <button
-              type="button"
-              onClick={handleAnalyzeWithAI}
-              disabled={isAnalyzing}
-              className="px-6 py-2.5 rounded-lg bg-medical-purple text-white hover:bg-medical-purple/90 transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              {isAnalyzing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4" />
-              )}
-              {isAnalyzing ? "Analyzing..." : "Analyze with AI"}
-            </button>
             <button type="submit" className="btn-medical px-6 py-2.5 gap-2">
-              <Save className="w-4 h-4" />
-              Create Patient
+              Continue to Video & Analysis
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </form>

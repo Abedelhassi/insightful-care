@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import CreatePatient from "./pages/CreatePatient";
+import PatientAnalysis from "./pages/PatientAnalysis";
 import PatientProfile from "./pages/PatientProfile";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/patients/new" element={<CreatePatient />} />
+              <Route path="/patients/:id/analysis" element={<PatientAnalysis />} />
               <Route path="/patients/:id" element={<PatientProfile />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/reports" element={<Dashboard />} />
