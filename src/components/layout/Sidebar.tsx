@@ -23,7 +23,7 @@ export function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-card border-r border-border flex flex-col">
+    <aside className="fixed left-0 rtl:left-auto rtl:right-0 top-0 h-screen w-64 bg-card border-r rtl:border-r-0 rtl:border-l border-border flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <Link to="/dashboard" className="flex items-center gap-3">

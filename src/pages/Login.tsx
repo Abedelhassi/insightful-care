@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Activity, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,6 +18,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex">
+      {/* Top right controls */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+        <LanguageSelector />
+        <ThemeToggle />
+      </div>
+
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md animate-fade-in">
