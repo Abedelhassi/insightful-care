@@ -1,73 +1,208 @@
-# Welcome to your Lovable project
+# 🧠 AI Medical Video Monitoring System
 
-## Project info
+## Overview
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+This project is a **medical AI prototype** designed to assist doctors in monitoring patients (e.g. addiction recovery cases) by **analyzing patient videos**, detecting risky behaviors, and generating **AI-assisted medical reports and alerts**.
 
-## How can I edit this code?
+The system combines:
 
-There are several ways of editing your application.
+* **Video Understanding AI** (TwelveLabs / Pose-based models)
+* **Deep Learning (ResNet-based video feature extraction)**
+* **AI Agent (Claude)** for medical-style reasoning
+* **n8n Workflow Automation** for alerts and reporting
 
-**Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🎯 Key Features
 
-Follow these steps:
+### ✅ Video-Based Behavior Detection
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+* Upload recorded patient videos
+* Automatic detection of:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+  * Walking / pacing
+  * Sitting / standing
+  * Falling
+  * Agitation
+  * Self-harm–like movements
 
-# Step 3: Install the necessary dependencies.
-npm i
+### ✅ AI Agent Medical Reasoning
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+* Converts raw AI detections into:
+
+  * Chronological behavior reports
+  * Risk levels (Low / Medium / High)
+  * Clear monitoring recommendations
+
+### ✅ Alerts & Reporting
+
+* **Telegram alerts** for critical events
+
+
+---
+
+## 🧠 AI Models Used
+
+### 1️⃣ Video Understanding (Primary)
+
+**TwelveLabs API**
+
+* High-level semantic understanding of video
+* Detects actions and events automatically
+* Outputs timestamps + confidence scores
+
+Example output:
+
+```json
+{
+  "event": "aggressive_movement",
+  "start": 12.4,
+  "end": 14.9,
+  "confidence": 0.87
+}
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 2️⃣ ResNet-Based Video Feature Extraction (Optional / Local)
 
-**Use GitHub Codespaces**
+Used for deeper motion analysis or on-premise processing.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+* Backbone: **ResNet-50 / ResNet-18**
+* Input: Video frames or frame sequences
+* Purpose:
 
-## What technologies are used for this project?
+  * Extract spatial features
+  * Support fall detection or abnormal motion detection
 
-This project is built with:
+Pipeline:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+Video → Frames → ResNet → Feature Vectors → Motion Logic
+```
 
-## How can I deploy this project?
+Libraries:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+* PyTorch
+* OpenCV
+* NumPy
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+### 3️⃣ AI Agent 
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+ is used as a **medical reasoning agent**, not a vision model.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Responsibilities:
+
+* Interpret detected actions
+* Generate medical-style reports
+* Highlight dangerous behavior
+* Avoid prescriptions or dosage recommendations
+
+Claude receives **structured JSON**, not raw video.
+
+---
+
+## ⚙️ n8n Workflow
+
+### Workflow Steps
+
+1. **Webhook Trigger**
+
+   * Receives patient ID, doctor info, and video URL
+
+2. **HTTP Request – TwelveLabs**
+
+   * Sends video for analysis
+   * Receives action timeline
+
+3. **AI Agent Node (Claude)**
+
+   * Analyzes behavior timeline
+   * Generates medical report
+
+4. **IF Node (Risk Logic)**
+
+   * High Risk → Immediate alert
+   * Medium/Low Risk → Normal report
+
+5. **Notifications**
+
+   * Telegram Node (urgent alerts)
+   * Email Node (full report)
+
+---
+
+## 🖥️ Web Application (Doctor Dashboard)
+
+### Core Features
+
+* Doctor login / authentication
+* Create and manage patients
+* Upload patient videos
+* View AI-generated reports
+* Receive alerts and notifications
+
+### Suggested Tech Stack
+
+* Frontend: React / Next.js
+* Backend: FastAPI / Node.js
+* Auth: JWT or OAuth
+* Storage: Temporary video storage only
+
+---
+
+## 🔐 Privacy & Ethics
+
+* Videos are processed temporarily
+* No permanent storage of sensitive data
+* AI outputs are **decision-support only**
+* Final medical decisions remain with doctors
+
+---
+
+## 🚀 Prototype Scope
+
+✔️ Hackathons
+✔️ Proof of Concept
+✔️ Research Demonstrations
+✔️ Startup Pitch
+
+
+---
+
+## 📌 Future Improvements
+
+* Real-time video stream analysis
+* On-device pose estimation
+* Multi-camera support
+* Encrypted video processing
+* Clinical validation
+
+---
+
+## 📄 Disclaimer
+
+This system is an **AI-assisted monitoring prototype**.
+It does NOT replace professional medical judgment.
+
+---
+
+## 🧩 Authors & Credits
+
+* Video Understanding: TwelveLabs
+* Deep Learning: ResNet (He et al.)
+
+
+---
+
+## 🏁 Status
+
+**Prototype – Functional – Hackathon Ready** 🚀
+
+
