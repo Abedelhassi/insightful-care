@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Video, Upload, Sparkles, X, Loader2, FileText, CheckCircle2, Save } from "lucide-react";
+import { Video, Upload, Sparkles, X, Loader2, FileText, CheckCircle2, Save, Clock, ClipboardList, Activity } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { generateMockAnalysis, AnalysisData, BehaviorLogEntry } from "@/lib/mockAnalysisData";
 
 export default function PatientAnalysis() {
   const navigate = useNavigate();
@@ -16,7 +17,16 @@ export default function PatientAnalysis() {
   const [isVideoDragging, setIsVideoDragging] = useState(false);
   const [isReportDragging, setIsReportDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AnalysisData | null>(null);
+  const [behaviorLogs, setBehaviorLogs] = useState<BehaviorLogEntry[]>([
+    { timeRange: "08:00 - 09:30", behavior: "" },
+    { timeRange: "09:30 - 11:00", behavior: "" },
+    { timeRange: "11:00 - 12:30", behavior: "" },
+    { timeRange: "12:30 - 14:00", behavior: "" },
+    { timeRange: "14:00 - 15:30", behavior: "" },
+    { timeRange: "15:30 - 17:00", behavior: "" },
+    { timeRange: "17:00 - 18:30", behavior: "" },
+  ]);
 
   useEffect(() => {
     const savedPatient = localStorage.getItem('newPatient');
@@ -31,6 +41,12 @@ export default function PatientAnalysis() {
       navigate("/patients/new");
     }
   }, [navigate]);
+
+  const updateBehavior = (index: number, value: string) => {
+    const newLogs = [...behaviorLogs];
+    newLogs[index].behavior = value;
+    setBehaviorLogs(newLogs);
+  };
 
   const handleVideoDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -89,6 +105,16 @@ export default function PatientAnalysis() {
   };
 
   const handleAnalyzeWithAI = () => {
+    const filledBehaviors = behaviorLogs.filter(log => log.behavior.trim() !== "");
+    if (filledBehaviors.length < 7) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in at least 7 behavioral observations.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!videoFile && !reportFile) {
       toast({
         title: "Missing files",
@@ -102,45 +128,12 @@ export default function PatientAnalysis() {
 
     setTimeout(() => {
       setIsAnalyzing(false);
-      setAiAnalysis(`AI Analysis Complete for ${patientData?.fullName}:
-
-Video Analysis:
-${videoFile ? `• Video uploaded: ${videoFile.name}
-• Duration: Analyzed successfully
-• Behavioral Patterns: Patient shows stable posture and movement patterns
-• Risk Indicators: No immediate high-risk behaviors detected
-• Activity Level: Moderate activity observed
-• Anomalies: None detected during observation period` : '• No video uploaded for analysis'}
-
-Medical Report Analysis:
-${reportFile ? `• Report uploaded: ${reportFile.name}
-• Document Type: Medical report processed
-• Key Findings: Medical history reviewed and cross-referenced with patient profile
-• Treatment Compatibility: Current medication plan appears appropriate
-• Recommendations: Continue monitoring as planned` : '• No medical report uploaded for analysis'}
-
-Medication Review:
-• Drug: ${patientData?.drugName || 'Not specified'}
-• Dosage: ${patientData?.dosage || 'Not specified'}
-• Frequency: ${patientData?.frequency || 'Not specified'}
-• Assessment: Medication plan is within standard treatment protocols
-
-Overall Risk Assessment: Low to Medium
-• Patient profile indicates stable baseline
-• No critical behavioral markers detected
-• Medication plan aligns with addiction type
-• Recommended monitoring frequency: Daily check-ins for first week
-
-AI Recommendations:
-1. Continue current treatment plan with scheduled follow-ups
-2. Monitor for any changes in behavioral patterns
-3. Ensure patient adherence to medication schedule
-4. Schedule next review in 7 days
-5. Enable real-time alerts for any concerning behaviors`);
+      const mockData = generateMockAnalysis(id || "P001");
+      setAiAnalysis(mockData);
 
       toast({
         title: "Analysis Complete",
-        description: "AI has successfully analyzed the uploaded files and patient data."
+        description: "AI has successfully analyzed the uploaded files, patient behavior, and medical reports."
       });
     }, 3000);
   };
@@ -162,10 +155,10 @@ AI Recommendations:
 
   return (
     <DashboardLayout
-      title="Create Patient - Step 2"
-      subtitle="Upload video and medical reports for AI analysis"
+      title="Create Patient - Analysis & Results"
+      subtitle="Input behavior logs and upload medical reports for AI analysis"
     >
-      <div className="max-w-4xl">
+      <div className="max-w-4xl pb-12">
         <div className="mb-6 p-4 bg-medical-blue-light rounded-xl">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 opacity-50">
@@ -179,7 +172,7 @@ AI Recommendations:
               <div className="w-8 h-8 rounded-full bg-medical-blue text-white flex items-center justify-center text-sm font-semibold">
                 2
               </div>
-              <span className="text-sm font-medium text-medical-blue">Video & Analysis</span>
+              <span className="text-sm font-medium text-medical-blue">Behavior & Medical Analysis</span>
             </div>
           </div>
         </div>
@@ -193,12 +186,43 @@ AI Recommendations:
               </p>
             </div>
             <div className="px-4 py-2 bg-medical-green-light text-medical-green rounded-lg text-sm font-medium">
-              Patient ID: {id}
+              Patient ID: {id || "NEW-001"}
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
+          {/* Step 3: Behavior Logging */}
+          <div className="medical-card">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-medical-blue-light flex items-center justify-center">
+                <ClipboardList className="w-5 h-5 text-medical-blue" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Patient Behavior Log</h3>
+                <p className="text-sm text-muted-foreground">Record behavior observed during different time slots (At least 7 required)</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              {behaviorLogs.map((log, index) => (
+                <div key={index} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2 min-w-[140px] text-sm font-medium text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    {log.timeRange}
+                  </div>
+                  <input
+                    type="text"
+                    value={log.behavior}
+                    onChange={(e) => updateBehavior(index, e.target.value)}
+                    placeholder="Enter patient behavior (e.g. sad, angry, anxious...)"
+                    className="flex-1 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
@@ -206,7 +230,7 @@ AI Recommendations:
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Upload Patient Video</h3>
-                <p className="text-sm text-muted-foreground">Video for behavioral analysis and monitoring</p>
+                <p className="text-sm text-muted-foreground">Video for behavioral verification</p>
               </div>
             </div>
 
@@ -265,7 +289,7 @@ AI Recommendations:
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Upload Medical Report</h3>
-                <p className="text-sm text-muted-foreground">Medical documents, lab results, or treatment history</p>
+                <p className="text-sm text-muted-foreground">Medical documents or lab results</p>
               </div>
             </div>
 
@@ -326,37 +350,89 @@ AI Recommendations:
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Analyzing with AI...
+                  Generating AI Analysis...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Analyze with AI
+                  Analyze Patient Case
                 </>
               )}
             </button>
             <p className="text-xs text-center text-muted-foreground mt-3">
-              AI will analyze uploaded files and generate a comprehensive report
+              AI will synthesize behavior logs, video, and medical reports to generate results
             </p>
           </div>
 
           {aiAnalysis && (
-            <div className="medical-card border-medical-purple/30 bg-medical-purple/5 animate-fade-in">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-medical-purple-light flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-medical-purple" />
+            <div className="space-y-6 animate-fade-in">
+              <div className="medical-card border-medical-purple/30 bg-medical-purple/5">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-medical-purple-light flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-medical-purple" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">AI Medical Results & Findings</h3>
+                    <p className="text-sm text-muted-foreground">Generated from behavioral and medical data</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">AI Analysis Results</h3>
-                  <p className="text-sm text-muted-foreground">Comprehensive AI-generated report</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Lab Parameters</h4>
+                    <div className="space-y-2">
+                      {aiAnalysis.medicalResults.map((result, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{result.parameter}</p>
+                            <p className="text-xs text-muted-foreground">Range: {result.normalRange}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-sm font-bold ${result.status === 'abnormal' ? 'text-destructive' : 'text-medical-green'}`}>
+                              {result.value}
+                            </p>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase font-bold ${result.status === 'abnormal' ? 'bg-destructive/10 text-destructive' : 'bg-medical-green/10 text-medical-green'}`}>
+                              {result.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Addiction Risk Assessment</h4>
+                    <div className="p-6 bg-background/50 rounded-lg border border-border text-center">
+                      <div className="inline-flex items-center justify-center w-24 h-24 rounded-full border-4 border-medical-purple/20 mb-3">
+                        <span className="text-3xl font-bold text-medical-purple">{aiAnalysis.relapseRisk}%</span>
+                      </div>
+                      <p className="text-sm font-medium text-foreground">Average Relapse Probability</p>
+                      <div className="mt-4 flex items-start gap-2 text-left p-3 bg-risk-high-bg rounded-lg">
+                        <Activity className="w-4 h-4 text-risk-high mt-0.5" />
+                        <p className="text-xs text-risk-high">
+                          The behavior logs show 3 peak agitation periods correlate with low serotonin markers.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Treatment Advices</h4>
+                  <div className="grid gap-2">
+                    {aiAnalysis.treatmentAdvices.map((advice, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 bg-medical-green-light/30 rounded-lg border border-medical-green/10">
+                        <CheckCircle2 className="w-4 h-4 text-medical-green mt-0.5" />
+                        <p className="text-sm text-foreground">{advice}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-muted-foreground mt-6 text-center italic">
+                  AI-assisted analysis. Final medical decisions remain the responsibility of the physician.
+                </p>
               </div>
-              <pre className="whitespace-pre-wrap text-sm text-foreground bg-background/50 p-4 rounded-lg font-sans">
-                {aiAnalysis}
-              </pre>
-              <p className="text-xs text-muted-foreground mt-3">
-                AI-assisted analysis. Final medical decisions remain the responsibility of the physician.
-              </p>
             </div>
           )}
 
@@ -377,7 +453,7 @@ AI Recommendations:
                 }}
                 className="px-6 py-2.5 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
               >
-                Skip Analysis
+                Cancel
               </button>
               <button
                 onClick={handleFinish}

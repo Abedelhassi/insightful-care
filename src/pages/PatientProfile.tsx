@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { 
@@ -12,9 +12,11 @@ import {
   Pill,
   Clock,
   Video,
-  Loader2
+  Loader2,
+  ClipboardList
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { generateMockAnalysis, AnalysisData } from "@/lib/mockAnalysisData";
 
 // Mock patient data
 const patientData = {
@@ -39,6 +41,7 @@ const detectedBehaviors = [
 export default function PatientProfile() {
   const { id } = useParams();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisData | null>(null);
   const [treatmentData, setTreatmentData] = useState({
     drugName: "Naltrexone",
     dosage: "50mg",
@@ -46,13 +49,21 @@ export default function PatientProfile() {
     notes: "Patient responding well to treatment. Continue monitoring for side effects.",
   });
 
+  useEffect(() => {
+    // Load existing analysis if any
+    const mock = generateMockAnalysis(id || "P001");
+    setAnalysisResults(mock);
+  }, [id]);
+
   const handleAnalyze = () => {
     setIsAnalyzing(true);
     setTimeout(() => {
       setIsAnalyzing(false);
+      const mock = generateMockAnalysis(id || "P001");
+      setAnalysisResults(mock);
       toast({
         title: "Analysis Complete",
-        description: "Video analysis has been completed successfully.",
+        description: "Video and behavioral analysis has been completed successfully.",
       });
     }, 3000);
   };
@@ -110,6 +121,32 @@ export default function PatientProfile() {
             </div>
           </div>
 
+          {/* Behavior Log Display */}
+          {analysisResults && (
+            <div className="medical-card">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-medical-blue-light flex items-center justify-center">
+                  <ClipboardList className="w-5 h-5 text-medical-blue" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Behavior Log</h3>
+                  <p className="text-sm text-muted-foreground">Recorded observations for the current period</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {analysisResults.behaviorLog.map((log, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+                    <Clock className="w-4 h-4 text-medical-blue" />
+                    <div className="flex-1">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold">{log.timeRange}</p>
+                      <p className="text-sm font-medium text-foreground">{log.behavior}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Video Upload & Analysis */}
           <div className="medical-card">
             <div className="flex items-center gap-3 mb-6">
@@ -146,32 +183,6 @@ export default function PatientProfile() {
                 </>
               )}
             </button>
-
-            {/* Detected Behaviors */}
-            <div className="mt-6 pt-6 border-t border-border">
-              <h4 className="font-medium text-foreground mb-4">AI Detected Movements</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {detectedBehaviors.map((item) => (
-                  <div 
-                    key={item.behavior}
-                    className={`p-3 rounded-lg flex items-center gap-2 ${
-                      item.detected 
-                        ? "bg-risk-high-bg" 
-                        : "bg-muted"
-                    }`}
-                  >
-                    {item.detected ? (
-                      <AlertTriangle className="w-4 h-4 text-risk-high" />
-                    ) : (
-                      <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-                    )}
-                    <span className={`text-sm ${item.detected ? "text-risk-high font-medium" : "text-muted-foreground"}`}>
-                      {item.behavior}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Treatment Information */}
@@ -250,61 +261,67 @@ export default function PatientProfile() {
             </p>
           </div>
 
-          {/* AI Generated Report */}
-          <div className="medical-card">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-medical-purple-light flex items-center justify-center">
-                <FileText className="w-5 h-5 text-medical-purple" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">AI Medical Report</h3>
-                <p className="text-xs text-muted-foreground">Auto-generated analysis</p>
+          {/* Relapse Probability */}
+          {analysisResults && (
+            <div className="medical-card bg-medical-purple/5 border-medical-purple/20 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Relapse Probability</p>
+              <p className="text-4xl font-bold text-medical-purple">{analysisResults.relapseRisk}%</p>
+              <div className="mt-4 p-3 bg-background/50 rounded-lg text-left text-xs text-muted-foreground">
+                <p>Based on behavioral patterns and biochemical markers.</p>
               </div>
             </div>
+          )}
 
-            <div className="space-y-4 text-sm">
-              <div>
-                <h4 className="font-medium text-foreground mb-1">Behavioral Summary</h4>
-                <p className="text-muted-foreground">
-                  Patient exhibits signs of agitation and restlessness during monitoring periods. 
-                  Walking patterns show irregularity. Potential self-harm behavior patterns detected 
-                  requiring immediate attention.
-                </p>
+          {/* Medical Results */}
+          {analysisResults && (
+            <div className="medical-card">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-medical-green-light flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-medical-green" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Medical Results</h3>
+                  <p className="text-xs text-muted-foreground">Lab and metabolic markers</p>
+                </div>
               </div>
-
-              <div>
-                <h4 className="font-medium text-foreground mb-1">Risk Assessment</h4>
-                <p className="text-muted-foreground">
-                  Elevated risk level based on detected behavioral patterns. Recommend increased 
-                  monitoring frequency and potential intervention assessment.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-foreground mb-1">Treatment Summary</h4>
-                <p className="text-muted-foreground">
-                  Currently on Naltrexone 50mg daily. Response to treatment is being monitored. 
-                  Doctor notes indicate positive progress with continued observation needed.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-foreground mb-1">Recommendations</h4>
-                <ul className="text-muted-foreground list-disc list-inside space-y-1">
-                  <li>Increase monitoring frequency to every 2 hours</li>
-                  <li>Schedule in-person evaluation within 48 hours</li>
-                  <li>Consider adjusting treatment dosage</li>
-                  <li>Enable real-time alert notifications</li>
-                </ul>
+              <div className="space-y-3">
+                {analysisResults.medicalResults.map((result, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 rounded border border-border/30">
+                    <div>
+                      <p className="text-xs font-medium text-foreground">{result.parameter}</p>
+                      <p className="text-[10px] text-muted-foreground">{result.normalRange}</p>
+                    </div>
+                    <p className={`text-xs font-bold ${result.status === 'abnormal' ? 'text-destructive' : 'text-medical-green'}`}>
+                      {result.value}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            <div className="mt-4 p-3 bg-muted rounded-lg">
-              <p className="text-xs text-muted-foreground text-center">
-                AI-assisted report. Final medical decisions remain the responsibility of the physician.
-              </p>
+          {/* Treatment Advices */}
+          {analysisResults && (
+            <div className="medical-card">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-medical-purple-light flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-medical-purple" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Treatment Advice</h3>
+                  <p className="text-xs text-muted-foreground">AI recommendations</p>
+                </div>
+              </div>
+              <ul className="space-y-2">
+                {analysisResults.treatmentAdvices.map((advice, i) => (
+                  <li key={i} className="text-xs text-muted-foreground flex gap-2">
+                    <CheckCircle2 className="w-3 h-3 text-medical-green shrink-0 mt-0.5" />
+                    {advice}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
 
           {/* Alert History */}
           <div className="medical-card">
@@ -325,9 +342,6 @@ export default function PatientProfile() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-4 text-center">
-              Emergency alerts are sent automatically via Telegram.
-            </p>
           </div>
         </div>
       </div>
